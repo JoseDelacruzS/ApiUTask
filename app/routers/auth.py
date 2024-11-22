@@ -37,30 +37,11 @@ async def register_user(
     telefono: str = Form(None),
     direccion: str = Form(None),
     nickname: str = Form(...),
-    avatar: UploadFile = File(None),  # Este campo es para el archivo
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     # Verificar si el email ya existe
-    from app.crud import get_usuario_by_email
     if get_usuario_by_email(db, email=email):
         raise HTTPException(status_code=400, detail="El correo ya está registrado")
-
-    # Procesar el archivo de avatar
-    avatar_url = None
-    if avatar:
-        if avatar.content_type not in ["image/jpeg", "image/png"]:
-            raise HTTPException(status_code=400, detail="El archivo debe ser una imagen JPEG o PNG.")
-        
-        # Guardar el archivo en el servidor
-        avatar_filename = f"{uuid.uuid4()}_{avatar.filename}"
-        avatar_path = UPLOAD_DIR / avatar_filename
-
-        with avatar_path.open("wb") as f:
-            content = await avatar.read()
-            f.write(content)
-        
-        # Crear la URL para la imagen (puedes ajustarla según tus necesidades)
-        avatar_url = f"/static/{avatar_filename}"
 
     # Hashear la contraseña
     hashed_password = pwd_context.hash(password)
@@ -74,9 +55,7 @@ async def register_user(
         "telefono": telefono,
         "direccion": direccion,
         "nickname": nickname,
-        "avatar": avatar_url,
     }
-    from app.schemas import UsuarioCreate
     usuario = UsuarioCreate(**usuario_data)
     return create_usuario(db, usuario)
 
