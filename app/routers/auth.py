@@ -81,4 +81,5 @@ def login_user(request: LoginRequest, response: Response, db: Session = Depends(
     # Establecer una cookie de sesión
     response.set_cookie(key="session_id", value=session_id, httponly=True)
 
-    return {"message": "Inicio de sesión exitoso", "user_id": user.id}
+    # Devolver el session_id en el cuerpo de la respuesta
+    return {"message": "Inicio de sesión exitoso", "user_id": user.id, "session_id": session_id}
