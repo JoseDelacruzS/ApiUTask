@@ -20,7 +20,6 @@ def create_group(
     """
     return create_grupo(db, group, user_id=user.id)
 
-
 @router.get("/{group_id}", response_model=GrupoResponse)
 def get_group(
     group_id: int, 
@@ -35,7 +34,6 @@ def get_group(
         raise HTTPException(status_code=404, detail="Grupo no encontrado o no autorizado")
     return group
 
-
 @router.get("/", response_model=list[GrupoResponse])
 def get_groups_for_user(
     db: Session = Depends(get_db), 
@@ -45,7 +43,6 @@ def get_groups_for_user(
     Obtener todos los grupos del usuario autenticado.
     """
     return get_grupos_by_user(db, user_id=user.id)
-
 
 @router.delete("/{group_id}")
 def delete_group(

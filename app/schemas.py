@@ -44,9 +44,11 @@ class UserRequest(BaseModel):
     user: UsuarioCreate
     avatar: Optional[UploadFile] = None
 
+
 # Base para los datos comunes de grupo
 class GrupoBase(BaseModel):
     nombre: str
+    descripcion: Optional[str] = None
 
 # Esquema para crear un grupo (entrada)
 class GrupoCreate(GrupoBase):
@@ -57,6 +59,7 @@ class GrupoResponse(GrupoBase):
     id: int
     user_id: int
     created_at: datetime
+    descripcion: str = "Sin descripción" 
 
     class Config:
         from_attributes  = True

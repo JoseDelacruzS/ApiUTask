@@ -26,6 +26,7 @@ class Grupo(Base):
     __tablename__ = "grupos"
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, nullable=False)
+    descripcion = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
         # Relación con Usuario

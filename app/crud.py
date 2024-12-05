@@ -84,7 +84,11 @@ def create_grupo(db: Session, grupo: schemas.GrupoCreate, user_id: int):
     """
     Crear un nuevo grupo asociado a un usuario.
     """
-    db_grupo = models.Grupo(nombre=grupo.nombre, user_id=user_id)
+    db_grupo = models.Grupo(
+        nombre=grupo.nombre,
+        descripcion=grupo.descripcion,  # Asignamos la descripción al crear
+        user_id=user_id
+    )
     db.add(db_grupo)
     db.commit()
     db.refresh(db_grupo)
@@ -108,6 +112,7 @@ def update_grupo(db: Session, grupo_id: int, grupo_update: schemas.GrupoCreate):
     db_grupo = db.query(models.Grupo).filter(models.Grupo.id == grupo_id).first()
     if db_grupo:
         db_grupo.nombre = grupo_update.nombre
+        db_grupo.descripcion = grupo_update.descripcion  # Actualizamos la descripción
         db.commit()
         db.refresh(db_grupo)
         return db_grupo
