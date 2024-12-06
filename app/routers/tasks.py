@@ -108,7 +108,7 @@ async def update_task(
     descripcion: Optional[str] = Form(None),
     due_date: Optional[str] = Form(None),
     grupo_id: Optional[int] = Form(None),
-    imagenes: List[UploadFile] = File(None),  # Acepta una lista de archivos
+    imagen: Optional[UploadFile] = File(None),  # Acepta solo una imagen
     db: Session = Depends(get_db), 
     user: Usuario = Depends(get_current_user)
 ):
@@ -120,25 +120,24 @@ async def update_task(
     if not task or task.user_id != user.id:
         raise HTTPException(status_code=404, detail="Tarea no encontrada o no autorizada")
     
-    # Mantener la lista de imágenes actuales si no se reciben nuevas
-    imagen_urls = [task.imagen] if task.imagen else []
+    # Mantener la imagen actual si no se recibe una nueva
+    imagen_url = task.imagen if task.imagen else None  # Solo la imagen actual o None si no existe
 
-    # Procesar cada imagen recibida
-    if imagenes:
-        for imagen in imagenes:
-            if imagen.content_type not in ["image/jpeg", "image/png"]:
-                raise HTTPException(status_code=400, detail="Las imágenes deben ser de tipo JPEG o PNG.")
-            
-            # Guardar cada nueva imagen
-            imagen_filename = f"{uuid.uuid4()}_{imagen.filename}"
-            imagen_path = UPLOAD_DIR / imagen_filename
-            
-            with imagen_path.open("wb") as f:
-                content = await imagen.read()
-                f.write(content)
-            
-            # Añadir la URL de la nueva imagen
-            imagen_urls.append(f"/static/{imagen_filename}")
+    # Procesar la imagen recibida
+    if imagen:
+        if imagen.content_type not in ["image/jpeg", "image/png"]:
+            raise HTTPException(status_code=400, detail="La imagen debe ser de tipo JPEG o PNG.")
+        
+        # Guardar la nueva imagen
+        imagen_filename = f"{uuid.uuid4()}_{imagen.filename}"
+        imagen_path = UPLOAD_DIR / imagen_filename
+        
+        with imagen_path.open("wb") as f:
+            content = await imagen.read()
+            f.write(content)
+        
+        # Actualizar la URL de la imagen
+        imagen_url = f"/static/{imagen_filename}"
 
     # Crear un diccionario para actualizar la tarea
     tarea_data = {
@@ -146,7 +145,7 @@ async def update_task(
         "descripcion": descripcion,
         "due_date": due_date,
         "grupo_id": grupo_id,
-        "imagenes": imagen_urls  # Actualizar la lista de imágenes
+        "imagen": imagen_url  # Actualizar la imagen con la nueva URL (si se recibe una nueva)
     }
 
     # Llamar al CRUD para actualizar la tarea
