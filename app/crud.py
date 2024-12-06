@@ -32,7 +32,11 @@ def create_usuario(db: Session, usuario: schemas.UsuarioCreate):
     db.refresh(db_usuario)
     return db_usuario
 
-def update_usuario(db: Session, user_id: int, user_update: UsuarioUpdate):
+def update_usuario(db: Session, user_id: int, user_update: dict):
+    # Convertir el diccionario a un objeto de tipo UsuarioUpdate
+    user_update = UsuarioUpdate(**user_update)
+
+    # Buscar al usuario en la base de datos
     db_user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
     if not db_user:
         return None  # O lanzar una excepción si el usuario no existe
@@ -53,6 +57,7 @@ def update_usuario(db: Session, user_id: int, user_update: UsuarioUpdate):
     if user_update.nickname:
         db_user.nickname = user_update.nickname
 
+    # Guardar los cambios en la base de datos
     db.commit()
     db.refresh(db_user)
     return db_user
