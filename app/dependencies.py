@@ -1,7 +1,7 @@
-from fastapi import HTTPException, Request, Depends
+from fastapi import Request, HTTPException, Depends
 from sqlalchemy.orm import Session
-from .models import DBSession, User
-from .database import get_db
+from app.models import Session as DBSession  # El modelo de sesiones que creamos previamente
+from app.database import get_db
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     # Obtener el session_id del encabezado 'sesion'
