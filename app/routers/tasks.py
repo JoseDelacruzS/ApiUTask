@@ -13,6 +13,7 @@ from app.crud import (
 )
 import uuid
 from pathlib import Path
+from typing import List
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -102,12 +103,11 @@ def get_tasks_for_user(
     """
     return get_tareas_by_user(db, user_id=user.id)
 
-
 @router.put("/{task_id}", response_model=TareaResponse)
 async def update_task(
     task_id: int, 
     task_update: TareaUpdate, 
-    imagen: UploadFile = File(None),  # Archivo opcional para la nueva imagen
+    imagenes: List[UploadFile] = File(None),  # Lista de archivos opcionales para las nuevas imágenes
     db: Session = Depends(get_db), 
     user: Usuario = Depends(get_current_user)
 ):
@@ -119,29 +119,29 @@ async def update_task(
     if not task or task.user_id != user.id:
         raise HTTPException(status_code=404, detail="Tarea no encontrada o no autorizada")
     
-    # Si se recibe una nueva imagen, procesarla
-    imagen_url = task.imagen  # Mantener la URL de la imagen actual si no se envía una nueva
-    if imagen:
-        if imagen.content_type not in ["image/jpeg", "image/png"]:
-            raise HTTPException(status_code=400, detail="La imagen debe ser de tipo JPEG o PNG.")
-        
-        # Eliminar la imagen antigua si existe, si es necesario (esto depende de cómo quieras manejar el almacenamiento)
-        # Puedes eliminar el archivo en el sistema de archivos si lo deseas
+    # Mantener la lista de imágenes actuales si no se reciben nuevas
+    imagen_urls = [task.imagen] if task.imagen else []
 
-        # Guardar la nueva imagen
-        imagen_filename = f"{uuid.uuid4()}_{imagen.filename}"
-        imagen_path = UPLOAD_DIR / imagen_filename
-        
-        with imagen_path.open("wb") as f:
-            content = await imagen.read()
-            f.write(content)
-        
-        # Actualizar la URL de la imagen
-        imagen_url = f"/static/{imagen_filename}"
+    # Procesar cada imagen recibida
+    if imagenes:
+        for imagen in imagenes:
+            if imagen.content_type not in ["image/jpeg", "image/png"]:
+                raise HTTPException(status_code=400, detail="Las imágenes deben ser de tipo JPEG o PNG.")
+            
+            # Guardar cada nueva imagen
+            imagen_filename = f"{uuid.uuid4()}_{imagen.filename}"
+            imagen_path = UPLOAD_DIR / imagen_filename
+            
+            with imagen_path.open("wb") as f:
+                content = await imagen.read()
+                f.write(content)
+            
+            # Añadir la URL de la nueva imagen
+            imagen_urls.append(f"/static/{imagen_filename}")
 
-    # Actualizar los datos de la tarea
+    # Actualizar los datos de la tarea con los nuevos valores
     tarea_data = task_update.dict(exclude_unset=True)
-    tarea_data["imagen"] = imagen_url  # Actualizar la imagen si se recibió una nueva
+    tarea_data["imagenes"] = imagen_urls  # Actualizar la lista de imágenes
     
     # Llamar al CRUD para actualizar la tarea
     return update_tarea(db, tarea_id=task_id, tarea_update=tarea_data)

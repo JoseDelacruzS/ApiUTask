@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException,Form,  UploadFile, File
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas import UsuarioResponse, UsuarioUpdate
@@ -7,6 +7,8 @@ from app.dependencies import get_current_user  # Importar get_current_user
 from app.models import Usuario
 import uuid
 from pathlib import Path
+from typing import Optional
+from pydantic import EmailStr
 
 # Crear la carpeta de imágenes si no existe
 UPLOAD_DIR = Path("uploaded_images")
@@ -23,22 +25,37 @@ def get_user(db: Session = Depends(get_db), user: Usuario = Depends(get_current_
 
 @router.put("/", response_model=UsuarioResponse)
 async def update_user(
-    user_update: UsuarioUpdate,
-    avatar: UploadFile = File(None),  # Archivo opcional para el nuevo avatar
+    nombre: Optional[str] = Form(None),
+    apellido: Optional[str] = Form(None),
+    email: Optional[EmailStr] = Form(None),
+    telefono: Optional[str] = Form(None),
+    direccion: Optional[str] = Form(None),
+    avatar: UploadFile = File(None),  # Archivo opcional para el avatar
+    nickname: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
     """
     Actualizar los datos del usuario autenticado.
     """
-    # Si se recibe un nuevo avatar, procesarlo
+    # Mantener los datos actuales del usuario si no se envían en la solicitud
+    usuario_data = {
+        "nombre": nombre or user.nombre,
+        "apellido": apellido or user.apellido,
+        "email": email or user.email,
+        "telefono": telefono or user.telefono,
+        "direccion": direccion or user.direccion,
+        "nickname": nickname or user.nickname,
+    }
+
+    # Procesar el nuevo avatar si se envió uno
     avatar_url = user.avatar  # Mantener el avatar actual si no se envía uno nuevo
     if avatar:
         if avatar.content_type not in ["image/jpeg", "image/png"]:
             raise HTTPException(status_code=400, detail="El avatar debe ser de tipo JPEG o PNG.")
         
-        # Eliminar el avatar antiguo si existe, si es necesario (esto depende de cómo manejes el almacenamiento)
-        # Aquí puedes eliminar el archivo antiguo en el sistema de archivos si lo deseas
+        # Eliminar el avatar antiguo si es necesario
+        # Aquí puedes eliminar el archivo antiguo si lo deseas
 
         # Guardar el nuevo avatar
         avatar_filename = f"{uuid.uuid4()}_{avatar.filename}"
@@ -51,9 +68,8 @@ async def update_user(
         # Actualizar la URL del avatar
         avatar_url = f"/static/{avatar_filename}"
 
-    # Actualizar los datos del usuario
-    usuario_data = user_update.dict(exclude_unset=True)
-    usuario_data["avatar"] = avatar_url  # Actualizar el avatar si se recibió uno nuevo
+    # Añadir la URL del avatar al diccionario de datos del usuario
+    usuario_data["avatar"] = avatar_url
 
     # Llamar al CRUD para actualizar el usuario
     return update_usuario(db, user_id=user.id, user_update=usuario_data)
