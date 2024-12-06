@@ -158,21 +158,30 @@ def create_tarea(db: Session, tarea: schemas.TareaCreate, user_id: int):
     db.refresh(db_tarea)
     return db_tarea
 
-def update_tarea(db: Session, tarea_id: int, tarea_update: schemas.TareaUpdate):
+def update_tarea(db: Session, tarea_id: int, tarea_update: dict):
     """
     Actualizar una tarea específica.
     """
     db_tarea = db.query(models.Tarea).filter(models.Tarea.id == tarea_id).first()
-    if db_tarea:
-        db_tarea.titulo = tarea_update.titulo
-        db_tarea.descripcion = tarea_update.descripcion
-        db_tarea.due_date = tarea_update.due_date
-        db_tarea.imagen = tarea_update.imagen
-        db_tarea.grupo_id = tarea_update.grupo_id
-        db.commit()
-        db.refresh(db_tarea)
-        return db_tarea
-    return None
+    if not db_tarea:
+        return None  # Si no se encuentra la tarea, retornar None
+
+    # Actualiza solo los campos que están presentes en tarea_update (como un diccionario)
+    if tarea_update.get('titulo'):
+        db_tarea.titulo = tarea_update['titulo']
+    if tarea_update.get('descripcion'):
+        db_tarea.descripcion = tarea_update['descripcion']
+    if tarea_update.get('due_date'):
+        db_tarea.due_date = tarea_update['due_date']
+    if tarea_update.get('imagen'):
+        db_tarea.imagen = tarea_update['imagen']
+    if tarea_update.get('grupo_id'):
+        db_tarea.grupo_id = tarea_update['grupo_id']
+
+    # Guardar los cambios en la base de datos
+    db.commit()
+    db.refresh(db_tarea)
+    return db_tarea
 
 def delete_tarea(db: Session, tarea_id: int):
     """
