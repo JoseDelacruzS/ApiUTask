@@ -77,7 +77,6 @@ async def create_task(
     tarea = TareaCreate(**tarea_data)
     return create_tarea(db, tarea, user_id=user.id)
 
-
 @router.get("/{task_id}", response_model=TareaResponse)
 def get_task(
     task_id: int, 
@@ -92,7 +91,6 @@ def get_task(
         raise HTTPException(status_code=404, detail="Tarea no encontrada o no autorizada")
     return task
 
-
 @router.get("/", response_model=list[TareaResponse])
 def get_tasks_for_user(
     db: Session = Depends(get_db), 
@@ -106,8 +104,11 @@ def get_tasks_for_user(
 @router.put("/{task_id}", response_model=TareaResponse)
 async def update_task(
     task_id: int, 
-    task_update: TareaUpdate, 
-    imagenes: List[UploadFile] = File(None),  # Lista de archivos opcionales para las nuevas imágenes
+    titulo: str = Form(...),  # Asegúrate de usar Form para los campos de texto
+    descripcion: str = Form(...),
+    due_date: str = Form(...),
+    grupo_id: int = Form(...),
+    imagenes: List[UploadFile] = File(None),  # Acepta una lista de archivos
     db: Session = Depends(get_db), 
     user: Usuario = Depends(get_current_user)
 ):
@@ -139,9 +140,14 @@ async def update_task(
             # Añadir la URL de la nueva imagen
             imagen_urls.append(f"/static/{imagen_filename}")
 
-    # Actualizar los datos de la tarea con los nuevos valores
-    tarea_data = task_update.dict(exclude_unset=True)
-    tarea_data["imagenes"] = imagen_urls  # Actualizar la lista de imágenes
+    # Crear un diccionario para actualizar la tarea
+    tarea_data = {
+        "titulo": titulo,
+        "descripcion": descripcion,
+        "due_date": due_date,
+        "grupo_id": grupo_id,
+        "imagenes": imagen_urls  # Actualizar la lista de imágenes
+    }
     
     # Llamar al CRUD para actualizar la tarea
     return update_tarea(db, tarea_id=task_id, tarea_update=tarea_data)
