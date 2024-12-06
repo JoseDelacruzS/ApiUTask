@@ -33,29 +33,26 @@ def create_usuario(db: Session, usuario: schemas.UsuarioCreate):
     return db_usuario
 
 def update_usuario(db: Session, user_id: int, user_update: dict):
-    # Convertir el diccionario a un objeto de tipo UsuarioUpdate
-    user_update = UsuarioUpdate(**user_update)
-
     # Buscar al usuario en la base de datos
     db_user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
     if not db_user:
         return None  # O lanzar una excepción si el usuario no existe
 
-    # Actualiza solo los campos que están presentes en user_update
-    if user_update.nombre:
-        db_user.nombre = user_update.nombre
-    if user_update.apellido:
-        db_user.apellido = user_update.apellido
-    if user_update.email:
-        db_user.email = user_update.email
-    if user_update.telefono:
-        db_user.telefono = user_update.telefono
-    if user_update.direccion:
-        db_user.direccion = user_update.direccion
-    if user_update.avatar:
-        db_user.avatar = user_update.avatar
-    if user_update.nickname:
-        db_user.nickname = user_update.nickname
+    # Actualiza solo los campos que están presentes en user_update (como un diccionario)
+    if user_update.get('nombre'):
+        db_user.nombre = user_update['nombre']
+    if user_update.get('apellido'):
+        db_user.apellido = user_update['apellido']
+    if user_update.get('email'):
+        db_user.email = user_update['email']
+    if user_update.get('telefono'):
+        db_user.telefono = user_update['telefono']
+    if user_update.get('direccion'):
+        db_user.direccion = user_update['direccion']
+    if user_update.get('avatar'):
+        db_user.avatar = user_update['avatar']
+    if user_update.get('nickname'):
+        db_user.nickname = user_update['nickname']
 
     # Guardar los cambios en la base de datos
     db.commit()
