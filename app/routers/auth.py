@@ -65,6 +65,8 @@ def login_user(request: LoginRequest, response: Response, db: Session = Depends(
     user = get_usuario_by_email(db, email=request.email)
     if not user:
         raise HTTPException(status_code=400, detail="Usuario no existe")
+    
+    # Verificar la contraseña
     if not pwd_context.verify(request.password, user.password):
         raise HTTPException(status_code=400, detail="Contraseña incorrecta")
 
@@ -78,8 +80,8 @@ def login_user(request: LoginRequest, response: Response, db: Session = Depends(
     db.add(db_session)
     db.commit()
 
-    # Establecer una cookie de sesión
-    response.set_cookie(key="session_id", value=session_id, httponly=True)
+    # Establecer el encabezado "sesion" con el session_id
+    response.headers["sesion"] = session_id
 
     # Devolver el session_id en el cuerpo de la respuesta
     return {"message": "Inicio de sesión exitoso", "user_id": user.id, "session_id": session_id}
