@@ -104,20 +104,47 @@ def get_tasks_for_user(
 
 
 @router.put("/{task_id}", response_model=TareaResponse)
-def update_task(
+async def update_task(
     task_id: int, 
     task_update: TareaUpdate, 
+    imagen: UploadFile = File(None),  # Archivo opcional para la nueva imagen
     db: Session = Depends(get_db), 
     user: Usuario = Depends(get_current_user)
 ):
     """
     Actualizar una tarea específica del usuario autenticado.
     """
+    # Buscar la tarea existente
     task = get_tarea(db, tarea_id=task_id)
     if not task or task.user_id != user.id:
         raise HTTPException(status_code=404, detail="Tarea no encontrada o no autorizada")
-    return update_tarea(db, tarea_id=task_id, tarea_update=task_update)
+    
+    # Si se recibe una nueva imagen, procesarla
+    imagen_url = task.imagen  # Mantener la URL de la imagen actual si no se envía una nueva
+    if imagen:
+        if imagen.content_type not in ["image/jpeg", "image/png"]:
+            raise HTTPException(status_code=400, detail="La imagen debe ser de tipo JPEG o PNG.")
+        
+        # Eliminar la imagen antigua si existe, si es necesario (esto depende de cómo quieras manejar el almacenamiento)
+        # Puedes eliminar el archivo en el sistema de archivos si lo deseas
 
+        # Guardar la nueva imagen
+        imagen_filename = f"{uuid.uuid4()}_{imagen.filename}"
+        imagen_path = UPLOAD_DIR / imagen_filename
+        
+        with imagen_path.open("wb") as f:
+            content = await imagen.read()
+            f.write(content)
+        
+        # Actualizar la URL de la imagen
+        imagen_url = f"/static/{imagen_filename}"
+
+    # Actualizar los datos de la tarea
+    tarea_data = task_update.dict(exclude_unset=True)
+    tarea_data["imagen"] = imagen_url  # Actualizar la imagen si se recibió una nueva
+    
+    # Llamar al CRUD para actualizar la tarea
+    return update_tarea(db, tarea_id=task_id, tarea_update=tarea_data)
 
 @router.delete("/{task_id}")
 def delete_task(
