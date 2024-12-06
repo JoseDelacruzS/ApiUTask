@@ -13,7 +13,7 @@ from app.crud import (
 )
 import uuid
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -101,13 +101,13 @@ def get_tasks_for_user(
     """
     return get_tareas_by_user(db, user_id=user.id)
 
-@router.put("/{task_id}", response_model=TareaResponse)
+@router.put("/{task_id}", response_model=TareaUpdate)
 async def update_task(
     task_id: int, 
-    titulo: str = Form(...),  # Asegúrate de usar Form para los campos de texto
-    descripcion: str = Form(...),
-    due_date: str = Form(...),
-    grupo_id: int = Form(...),
+    titulo: Optional[str] = Form(None),  # Campo opcional
+    descripcion: Optional[str] = Form(None),
+    due_date: Optional[str] = Form(None),
+    grupo_id: Optional[int] = Form(None),
     imagenes: List[UploadFile] = File(None),  # Acepta una lista de archivos
     db: Session = Depends(get_db), 
     user: Usuario = Depends(get_current_user)
@@ -148,7 +148,7 @@ async def update_task(
         "grupo_id": grupo_id,
         "imagenes": imagen_urls  # Actualizar la lista de imágenes
     }
-    
+
     # Llamar al CRUD para actualizar la tarea
     return update_tarea(db, tarea_id=task_id, tarea_update=tarea_data)
 
