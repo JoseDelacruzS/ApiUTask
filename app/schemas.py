@@ -73,7 +73,7 @@ class GrupoUpdate(GrupoBase):
 class TareaBase(BaseModel):
     titulo: str
     descripcion: Optional[str] = None
-    due_date: datetime
+    due_date: str
     imagen: Optional[str] = None
 
 # Esquema para crear una tarea (entrada)
