@@ -40,7 +40,7 @@ class Tarea(Base):
     id = Column(Integer, primary_key=True, index=True)
     titulo = Column(String, nullable=False)
     descripcion = Column(String, nullable=True)
-    due_date = Column(DateTime, nullable=False)
+    due_date = Column(String, nullable=False)  # Cambié el tipo de `DateTime` a `String` para mantenerlo como texto
     created_at = Column(DateTime, default=datetime.utcnow)
     imagen = Column(String, nullable=True)
     grupo_id = Column(Integer, ForeignKey("grupos.id"), nullable=True)

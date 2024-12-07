@@ -31,16 +31,16 @@ def allowed_file(filename: str) -> bool:
 async def create_task(
     titulo: str = Form(...),
     descripcion: str = Form(None),
-    due_date: str = Form(...),  # Se recibirá como string y se convertirá a datetime
+    due_date: str = Form(...),  # Recibe la fecha como string (sin conversión)
     grupo_id: int = Form(None),
-    imagen: UploadFile = File(None),  # Archivo opcional para la imagen
+    imagen: UploadFile = File(None),  # Imagen opcional
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user),
 ):
     """
     Crear una nueva tarea para el usuario autenticado.
     """
-    # Validar y procesar la imagen
+    # Validar y procesar la imagen (si existe)
     imagen_url = None
     if imagen:
         if imagen.content_type not in ["image/jpeg", "image/png"]:
@@ -57,18 +57,14 @@ async def create_task(
         # URL pública para acceder a la imagen (ajustar según tu configuración de servidor)
         imagen_url = f"/static/{imagen_filename}"
 
-    # Convertir due_date a datetime
-    from datetime import datetime
-    try:
-        due_date_dt = datetime.fromisoformat(due_date)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="El formato de la fecha de vencimiento es inválido.")
+    # No es necesario convertir due_date a datetime, lo dejamos como string
+    # Si el formato de fecha es importante, puedes validarlo aquí, pero no lo convertirás a datetime
 
     # Crear el objeto de la tarea
     tarea_data = {
         "titulo": titulo,
         "descripcion": descripcion,
-        "due_date": due_date_dt,
+        "due_date": due_date,  # Se usa como string, no se convierte a datetime
         "imagen": imagen_url,
         "grupo_id": grupo_id,
         "user_id": user.id,

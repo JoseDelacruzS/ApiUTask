@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="Utask.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="1"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="2351"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="tareas" custom_title="0" dock_id="1" table="4,6:maintareas"/><dock_state state="000000ff00000000fd0000000100000002000005bb000003c0fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000005bb0000012300ffffff000002690000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="grupos" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="35"/><column index="2" value="183"/><column index="3" value="52"/><column index="4" value="215"/><column index="5" value="127"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="tareas" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort><column index="3" mode="1"/></sort><column_widths><column index="1" value="35"/><column index="2" value="143"/><column index="3" value="271"/><column index="4" value="215"/><column index="5" value="215"/><column index="6" value="300"/><column index="7" value="60"/><column index="8" value="52"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">-- Paso 1: Crear la nueva tabla con la columna modificada
+CREATE TABLE tareas_nueva (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    descripcion TEXT,
+    due_date TEXT NOT NULL,  -- Cambio a TEXT o VARCHAR
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    imagen TEXT,
+    grupo_id INTEGER,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY(grupo_id) REFERENCES grupos(id),
+    FOREIGN KEY(user_id) REFERENCES usuarios(id)
+);
+
+-- Paso 2: Copiar los datos de la tabla original a la nueva
+INSERT INTO tareas_nueva (id, titulo, descripcion, due_date, created_at, imagen, grupo_id, user_id)
+SELECT id, titulo, descripcion, due_date, created_at, imagen, grupo_id, user_id FROM tareas;
+
+-- Paso 3: Eliminar la tabla antigua
+DROP TABLE tareas;
+
+-- Paso 4: Renombrar la nueva tabla a &quot;tareas&quot;
+ALTER TABLE tareas_nueva RENAME TO tareas;
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
