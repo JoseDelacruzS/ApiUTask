@@ -10,6 +10,7 @@ from app.crud import (
     get_tareas_by_user,
     update_tarea,
     delete_tarea,
+    get_tareas_by_user_and_group
 )
 import uuid
 from pathlib import Path
@@ -165,3 +166,17 @@ def delete_task(
         raise HTTPException(status_code=404, detail="Tarea no encontrada o no autorizada")
     delete_tarea(db, tarea_id=task_id)
     return {"message": "Tarea eliminada correctamente"}
+
+@router.get("/group/{group_id}", response_model=List[TareaResponse])
+def get_tasks_for_user_and_group(
+    group_id: int,
+    db: Session = Depends(get_db), 
+    user: Usuario = Depends(get_current_user)
+):
+    """
+    Obtener todas las tareas del usuario autenticado que pertenecen a un grupo específico.
+    """
+    tareas = get_tareas_by_user_and_group(db, user_id=user.id, group_id=group_id)
+    if not tareas:
+        raise HTTPException(status_code=404, detail="No se encontraron tareas para este grupo.")
+    return tareas

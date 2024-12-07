@@ -3,6 +3,7 @@ from . import models, schemas
 from passlib.context import CryptContext
 from datetime import datetime
 from app.schemas import UsuarioUpdate
+from pydantic import List
 
 # Crear un objeto CryptContext para el manejo de contraseñas con hash
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -194,6 +195,11 @@ def delete_tarea(db: Session, tarea_id: int):
         return db_tarea
     return None
 
+def get_tareas_by_user_and_group(db: Session, user_id: int, group_id: int) -> List[models.Tarea]:
+    """
+    Obtener todas las tareas asociadas a un usuario y a un grupo específico.
+    """
+    return db.query(models.Tarea).filter(models.Tarea.user_id == user_id, models.Tarea.grupo_id == group_id).all()
 # Sesiones de usuario
 
 def create_session(db: Session, session_id: str, user_id: int):
