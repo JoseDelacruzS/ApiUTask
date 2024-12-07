@@ -3,7 +3,7 @@ from . import models, schemas
 from passlib.context import CryptContext
 from datetime import datetime
 from app.schemas import UsuarioUpdate
-from pydantic import List
+from typing import List
 
 # Crear un objeto CryptContext para el manejo de contraseñas con hash
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
