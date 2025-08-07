@@ -120,7 +120,3 @@ Backend Developer
 
 Este proyecto es de código abierto y libre para uso educativo y comercial.
 
----
-
-¿Quieres que te arme también ejemplos de requests o un postman collection?
-```
